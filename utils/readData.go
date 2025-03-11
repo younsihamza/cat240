@@ -12,7 +12,7 @@ import (
 func ReadData() {
 	// open pcap file
 	for {
-		handle, err := pcap.OpenOffline("data/ASTERIX_CAT240_1_20230517184234.pcap")
+		handle, err := pcap.OpenOffline("data/ASTERIX_CAT240_4_20230517190733 (1).pcap")
 		if err != nil {
 			fmt.Println(err)
 			continue

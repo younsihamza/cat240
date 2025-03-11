@@ -6,11 +6,6 @@ COPY . /app
 
 WORKDIR /app
 
-# COPY script.sh script.sh 
-
 RUN go build 
 
-# CMD ["bash", "script.sh"]
-
 CMD ["go", "run", "."]
-

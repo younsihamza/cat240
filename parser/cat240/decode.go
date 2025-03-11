@@ -14,12 +14,12 @@ type BlockData struct {
 	Intencity 		int			"json:intencity"
 }
 
-func Decode (data *ValidData) *[]BlockData{
+func Decode (data *ValidData) []interface{}{
 	if checkHightOrderBit(data.VideoCellsResolution.CompressionIndicator) {
 		data.VideoBlock = decompresData(data.VideoBlock)
 	}
-	return coordinateTransformation(data)
-}
+	//  coordinateTransformation(data)
+	return toGeoJson(coordinateTransformation(data)) }
 
 func coordinateTransformation(data *ValidData) *[]BlockData {
 	var coordinateHold = []BlockData{}
@@ -95,23 +95,19 @@ func bitResolution(data *ValidData, bit_per_cell int) {
 	data.VideoBlock = video_data
 }
 
-// func toGeoJson(data *[]BlockData) {
-// 	structer := map[string]interface{}{
-// 		"type": "FeatureCollection",
-// 		"features": []interface{}{},
-// 	}
-// 	for _, block := range *data {
-// 		structer["features"] = append(structer["features"].([]interface{}), map[string]interface{}{
-// 			"type": "Feature",
-// 			"properties": map[string]interface{}{
-// 				"intensity": block.Intencity,
-// 			},
-// 			"geometry": map[string]interface{}{
-// 				"type": "Point",
-// 				"coordinates": []float64{block.Longtitude, block.Latitude},
-// 			},
-// 		})
-// 	}
-// 	jj , _ := json.Marshal(structer)
-// 	sender.CH <- jj
-// }
+func toGeoJson(data *[]BlockData)  ([]interface{}){
+	hold :=  []interface{}{}
+	for _, block := range *data {
+		hold = append(hold, map[string]interface{}{
+			"type": "Feature",
+			"properties": map[string]interface{}{
+				"intensity": block.Intencity,
+			},
+			"geometry": map[string]interface{}{
+				"type": "Point",
+				"coordinates": []float64{block.Longtitude, block.Latitude},
+			},
+		})
+	}
+	return hold
+}
