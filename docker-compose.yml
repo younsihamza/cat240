@@ -1,0 +1,7 @@
+services:
+  cat240:
+    build: .
+    ports:
+      - "8080:8080"
+    
+  
