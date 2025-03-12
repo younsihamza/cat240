@@ -12,14 +12,15 @@ type BlockData struct {
 	Longtitude 		float64 	"json:longtitude"
 	Latitude 		float64		"json:latitude"
 	Intencity 		int			"json:intencity"
+	StartAzimuth 	float64		"json:start_azimuth"
+	EndAzimuth 		float64		"json:end_azimuth"
 }
 
-func Decode (data *ValidData) []interface{}{
+func Decode (data *ValidData) map[string]interface{}{
 	if checkHightOrderBit(data.VideoCellsResolution.CompressionIndicator) {
 		data.VideoBlock = decompresData(data.VideoBlock)
 	}
-	//  coordinateTransformation(data)
-	return toGeoJson(coordinateTransformation(data)) }
+	return toGeoJson(coordinateTransformation(data),data.VideoHeader.StartAzimuth,  data.VideoHeader.EndAzimuth) }
 
 func coordinateTransformation(data *ValidData) *[]BlockData {
 	var coordinateHold = []BlockData{}
@@ -27,11 +28,14 @@ func coordinateTransformation(data *ValidData) *[]BlockData {
     rangeCell := data.VideoHeader.CellDuration * speedOfLight / 2.0 
     azimuthIncrement := (data.VideoHeader.EndAzimuth - data.VideoHeader.StartAzimuth) / float64(data.VideoOctetsVideoCellCounters.ValidCellsInVideoBlock)
     for i := 0; i < len(data.VideoBlock)-1; i++ {
+		if int(data.VideoBlock[i]) < 50 {
+			continue
+		}
         currentRange := rangeCell * float64(i+data.VideoHeader.StartRange-1)
         currentAzimuth := data.VideoHeader.StartAzimuth + azimuthIncrement * float64(i)
         x, y := polarToCartesian(currentRange, currentAzimuth)
 		lat, longtitud := CartesianToGeo(51.75413333, -1.3498, x, y)
-		coordinateHold = append(coordinateHold, BlockData{longtitud, lat, int(data.VideoBlock[i])})
+		coordinateHold = append(coordinateHold, BlockData{longtitud, lat, int(data.VideoBlock[i]), data.VideoHeader.StartAzimuth, data.VideoHeader.EndAzimuth})
     }
     return &coordinateHold
 }
@@ -95,7 +99,7 @@ func bitResolution(data *ValidData, bit_per_cell int) {
 	data.VideoBlock = video_data
 }
 
-func toGeoJson(data *[]BlockData)  ([]interface{}){
+func toGeoJson(data *[]BlockData, start_azimuth,  end_azimuth float64)  (map[string]interface{}){
 	hold :=  []interface{}{}
 	for _, block := range *data {
 		hold = append(hold, map[string]interface{}{
@@ -109,5 +113,9 @@ func toGeoJson(data *[]BlockData)  ([]interface{}){
 			},
 		})
 	}
-	return hold
+	return map[string]interface{}{
+		"start_azimuth": start_azimuth,
+		"end_azimuth": end_azimuth,
+		"features": hold,
+	}
 }
