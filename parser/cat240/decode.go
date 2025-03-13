@@ -120,7 +120,7 @@ func toGeoJson(data *[]BlockData, start_azimuth,  end_azimuth float64, StartRang
 	return map[string]interface{}{
 		"start_azimuth": start_azimuth,
 		"end_azimuth": end_azimuth,
-		"StartRange": StartRange,
+		"start_range": StartRange,
 		"features": hold,
 	}
 }
