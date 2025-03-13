@@ -35,7 +35,7 @@ func coordinateTransformation(data *ValidData) *[]BlockData {
         currentRange := rangeCell * float64(i+data.VideoHeader.StartRange-1)
         currentAzimuth := data.VideoHeader.StartAzimuth + azimuthIncrement * float64(i)
         x, y := polarToCartesian(currentRange, currentAzimuth)
-		lat, longtitud := CartesianToGeo(51.75413333, -1.3498, x, y)
+		lat, longtitud := CartesianToGeo(51.754245,-1.356208, x, y)
 		coordinateHold = append(coordinateHold, BlockData{longtitud, lat, int(data.VideoBlock[i]), data.VideoHeader.StartAzimuth, data.VideoHeader.EndAzimuth, data.VideoHeader.StartRange})
     }
     return &coordinateHold
