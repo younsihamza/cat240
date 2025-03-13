@@ -14,13 +14,14 @@ type BlockData struct {
 	Intencity 		int			"json:intencity"
 	StartAzimuth 	float64		"json:start_azimuth"
 	EndAzimuth 		float64		"json:end_azimuth"
+	StartRange 		int		"json:start_range"
 }
 
 func Decode (data *ValidData) map[string]interface{}{
 	if checkHightOrderBit(data.VideoCellsResolution.CompressionIndicator) {
 		data.VideoBlock = decompresData(data.VideoBlock)
 	}
-	return toGeoJson(coordinateTransformation(data),data.VideoHeader.StartAzimuth,  data.VideoHeader.EndAzimuth) }
+	return toGeoJson(coordinateTransformation(data),data.VideoHeader.StartAzimuth,  data.VideoHeader.EndAzimuth, data.VideoHeader.StartRange) }
 
 func coordinateTransformation(data *ValidData) *[]BlockData {
 	var coordinateHold = []BlockData{}
@@ -35,7 +36,7 @@ func coordinateTransformation(data *ValidData) *[]BlockData {
         currentAzimuth := data.VideoHeader.StartAzimuth + azimuthIncrement * float64(i)
         x, y := polarToCartesian(currentRange, currentAzimuth)
 		lat, longtitud := CartesianToGeo(51.75413333, -1.3498, x, y)
-		coordinateHold = append(coordinateHold, BlockData{longtitud, lat, int(data.VideoBlock[i]), data.VideoHeader.StartAzimuth, data.VideoHeader.EndAzimuth})
+		coordinateHold = append(coordinateHold, BlockData{longtitud, lat, int(data.VideoBlock[i]), data.VideoHeader.StartAzimuth, data.VideoHeader.EndAzimuth, data.VideoHeader.StartRange})
     }
     return &coordinateHold
 }
@@ -99,7 +100,7 @@ func bitResolution(data *ValidData, bit_per_cell int) {
 	data.VideoBlock = video_data
 }
 
-func toGeoJson(data *[]BlockData, start_azimuth,  end_azimuth float64)  (map[string]interface{}){
+func toGeoJson(data *[]BlockData, start_azimuth,  end_azimuth float64, StartRange int)  (map[string]interface{}){
 	hold :=  []interface{}{}
 	for _, block := range *data {
 		hold = append(hold, map[string]interface{}{
@@ -108,6 +109,7 @@ func toGeoJson(data *[]BlockData, start_azimuth,  end_azimuth float64)  (map[str
 				"intensity": block.Intencity,
 				"start_azimuth": block.StartAzimuth,
 				"end_azimuth": block.EndAzimuth,
+				"start_range": block.StartRange,
 			},
 			"geometry": map[string]interface{}{
 				"type": "Point",
@@ -118,6 +120,7 @@ func toGeoJson(data *[]BlockData, start_azimuth,  end_azimuth float64)  (map[str
 	return map[string]interface{}{
 		"start_azimuth": start_azimuth,
 		"end_azimuth": end_azimuth,
+		"StartRange": StartRange,
 		"features": hold,
 	}
 }
