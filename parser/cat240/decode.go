@@ -106,6 +106,8 @@ func toGeoJson(data *[]BlockData, start_azimuth,  end_azimuth float64)  (map[str
 			"type": "Feature",
 			"properties": map[string]interface{}{
 				"intensity": block.Intencity,
+				"start_azimuth": block.StartAzimuth,
+				"end_azimuth": block.EndAzimuth,
 			},
 			"geometry": map[string]interface{}{
 				"type": "Point",
