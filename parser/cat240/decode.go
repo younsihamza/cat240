@@ -62,8 +62,8 @@ func Decode (data *ValidData) map[string]interface{}{
 	
 	func polarToCartesian(rangeCell float64, azimuth float64) (float64, float64) {
 		azimuthRad := azimuth * math.Pi / 180
-		var x float64 = rangeCell * math.Cos(azimuthRad)
-		var y float64 = rangeCell * math.Sin(azimuthRad)
+		var x float64 = rangeCell * math.Sin(azimuthRad)
+		var y float64 = rangeCell * math.Cos(azimuthRad)
 		return x, y
 	}
 	
