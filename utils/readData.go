@@ -2,26 +2,38 @@ package utils
 
 import (
 	"fmt"
+	"net"
 	"radar240/global"
 	"time"
-	"github.com/google/gopacket"
-	"github.com/google/gopacket/pcap"
 )
 
 // ReadData reads data from a pcap file
+var IP_ADDRESS = "84.247.170.21:7055"
 func ReadData() {
-	// open pcap file
+	
 	for {
-		handle, err := pcap.OpenOffline("data/ASTERIX_CAT240_4_20230517190733 (1).pcap")
+		connection, err  := net.Dial("tcp", IP_ADDRESS)
 		if err != nil {
 			fmt.Println(err)
+			time.Sleep(5 * time.Second)
 			continue
 		}
-		defer handle.Close()
-		packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
-		for packet := range packetSource.Packets() {
-			global.FilteredData <- packet.ApplicationLayer().Payload()
-			time.Sleep(1 * time.Second)
+		fmt.Println("Connected to the server ", IP_ADDRESS)
+		n , err := connection.Write([]byte("JTh0453YsksaCYo\n"))
+		fmt.Println(n, err)
+		// defer connection.Close()
+		// read data from the connection
+		for {
+			var buffer = make([]byte, 1000000)
+			// fmt.Println("before reading")
+			n , err :=  connection.Read(buffer)
+			if err != nil {
+				fmt.Println(err)
+				break
+			}
+			global.FilteredData <- buffer[:n]
+			// time.Sleep(1 * time.Second)
 		}
+		connection.Close()
 	}
 }

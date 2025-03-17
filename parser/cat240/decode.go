@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"radar240/global"
+
+	"go.uber.org/zap"
 )
 
 type BlockData struct {
@@ -25,13 +28,13 @@ func Decode (data *ValidData) map[string]interface{}{
 
 func coordinateTransformation(data *ValidData) *[]BlockData {
 	var coordinateHold = []BlockData{}
-    speedOfLight := 161875.0 // speed of light in nautical miles per second
+    speedOfLight := 299792458.0 // speed of light in nautical miles per second
     rangeCell := data.VideoHeader.CellDuration * speedOfLight / 2.0 
     azimuthIncrement := (data.VideoHeader.EndAzimuth - data.VideoHeader.StartAzimuth) / float64(data.VideoOctetsVideoCellCounters.ValidCellsInVideoBlock)
     for i := 0; i < len(data.VideoBlock)-1; i++ {
-		if int(data.VideoBlock[i]) < 50 {
-			continue
-		}
+		// if int(data.VideoBlock[i]) < 50 {
+		// 	continue
+		// }
         currentRange := rangeCell * float64(i+data.VideoHeader.StartRange-1)
         currentAzimuth := data.VideoHeader.StartAzimuth + azimuthIncrement * float64(i)
         x, y := polarToCartesian(currentRange, currentAzimuth)
@@ -43,7 +46,7 @@ func coordinateTransformation(data *ValidData) *[]BlockData {
 
 
 func CartesianToGeo(originLat, originLon, x, y float64) (float64, float64) {
-	EarthRadius := 3443.92 // Earth radius in nautical miles.
+	EarthRadius := 6378137.0 // Earth radius in nautical miles.
 	// Convert the origin latitude to radians.
 	originLatRad := originLat * math.Pi / 180.0
 	// Calculate the angular offsets in radians.
@@ -72,12 +75,13 @@ func decompresData(data []byte) ([]byte){
 	r, err := zlib.NewReader(bytes.NewReader(data))
 	if err != nil {
 		fmt.Println(err)
+		global.Logger.Error("ERROR : ", zap.Error(err))
 		return nil
 	}
 	defer r.Close()
 	data ,err  = io.ReadAll(r)
 	if err != nil {
-		fmt.Println(err)
+		global.Logger.Error("ERROR : ", zap.Error(err))
 		return nil
 	}
 	return data

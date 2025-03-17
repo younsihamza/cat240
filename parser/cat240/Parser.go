@@ -6,6 +6,9 @@ import (
 )
 
 func Parser(data []byte) (*ValidData, error) {
+	if data[0] != 240 {
+		return nil, fmt.Errorf("Invalid data")
+	}
 	if (int(data[1]) << 8) + int(data[2])  != len(data) {
 		return nil, fmt.Errorf("Invalid data")
 	}
@@ -90,7 +93,6 @@ func convertToVideoDataItem(fspec string, data []byte) (*ValidData, error) {
 					CompressionIndicator : data[0],
 					BitResolution : int(data[1]),
 				}
-				
 				data = data[2:]
 			case 9:
 				if len(data) < 5 {

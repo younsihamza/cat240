@@ -10,6 +10,7 @@ import (
 func Sender() {
 	route := gin.Default()
 	route.GET("/radar240", func(c *gin.Context) {
+		// fmt.Println("trying to connect ")
 		conn , err := global.Upgrader.Upgrade(c.Writer, c.Request, nil)
 		if err != nil {
 			fmt.Println("ERROR: ", err)
@@ -34,5 +35,5 @@ func Sender() {
 				}
 			}
 	})
-	route.Run(":8080")
+	route.Run(":8083")
 }
