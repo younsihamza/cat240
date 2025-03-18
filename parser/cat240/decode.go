@@ -23,20 +23,13 @@ func Decode (data *ValidData) map[string]interface{}{
 	}
 	return toGeoJson(coordinateTransformation(data),data.VideoHeader.StartAzimuth,  data.VideoHeader.EndAzimuth, data.VideoHeader.StartRange) 
 }
-
-
 	func coordinateTransformation(data *ValidData) *[]BlockData {
 		var coordinateHold = []BlockData{}
 		speedOfLight := 299792458.0 // speed of light in meters  per second
 		rangeCell := data.VideoHeader.CellDuration * speedOfLight / 2.0 
 		azimuthIncrement := (data.VideoHeader.EndAzimuth - data.VideoHeader.StartAzimuth) / float64(data.VideoOctetsVideoCellCounters.ValidCellsInVideoBlock)
-		fmt.Println(rangeCell * float64(data.VideoHeader.StartRange))
 		currentRange := rangeCell * float64(len(data.VideoBlock) - 1 + data.VideoHeader.StartRange)
-		currentAzimuth := data.VideoHeader.StartAzimuth + azimuthIncrement * float64(len(data.VideoBlock)-1)
-		x, y := polarToCartesian(currentRange, currentAzimuth)
-		lat, longtitud := CartesianToGeo(51.754245,-1.356208, x, y)
-		coordinateHold = append(coordinateHold, BlockData{Longtitude:longtitud, Latitude:lat, Intencity:0, StartAzimuth:data.VideoHeader.StartAzimuth, EndAzimuth:data.VideoHeader.EndAzimuth, StartRange:currentRange})
-		// fmt.Println(coordinateHold)
+		coordinateHold = append(coordinateHold, BlockData{Longtitude:0, Latitude:0, Intencity:0, StartAzimuth:data.VideoHeader.StartAzimuth, EndAzimuth:data.VideoHeader.EndAzimuth, StartRange:currentRange})
 		for i := 0; i < len(data.VideoBlock)-1; i++ {
 			if int(data.VideoBlock[i]) < 50 {
 				continue
@@ -132,10 +125,6 @@ func Decode (data *ValidData) map[string]interface{}{
 			"start_azimuth": start_azimuth,
 			"end_azimuth": end_azimuth,
 			"start_range": (*data)[0].StartRange,
-			"last_point" : map[string]interface{}{
-				"Longtitude": (*data)[0].Longtitude,
-				"Latitude": (*data)[0].Latitude,
-			},
 			"features": hold,
 		}
 	}
