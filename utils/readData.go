@@ -32,7 +32,6 @@ func ReadData() {
 				break
 			}
 			global.FilteredData <- buffer[:n]
-			// time.Sleep(1 * time.Second)
 		}
 		connection.Close()
 	}
