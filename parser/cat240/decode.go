@@ -14,7 +14,7 @@ type BlockData struct {
 	Intencity 		int			"json:intencity"
 	StartAzimuth 	float64		"json:start_azimuth"
 	EndAzimuth 		float64		"json:end_azimuth"
-	StartRange 		int		"json:start_range"
+	StartRange 		float64		"json:start_range"
 }
 
 func Decode (data *ValidData) map[string]interface{}{
@@ -28,22 +28,24 @@ func Decode (data *ValidData) map[string]interface{}{
 		speedOfLight := 299792458.0 // speed of light in nautical miles per second
 		rangeCell := data.VideoHeader.CellDuration * speedOfLight / 2.0 
 		azimuthIncrement := (data.VideoHeader.EndAzimuth - data.VideoHeader.StartAzimuth) / float64(data.VideoOctetsVideoCellCounters.ValidCellsInVideoBlock)
+		coordinateHold = append(coordinateHold, BlockData{0, 0, int(data.VideoBlock[len(data.VideoBlock)-1]), data.VideoHeader.StartAzimuth, data.VideoHeader.EndAzimuth, rangeCell * float64(data.VideoHeader.StartRange)})
+		fmt.Println(rangeCell * float64(data.VideoHeader.StartRange))
 		for i := 0; i < len(data.VideoBlock)-1; i++ {
-			// if int(data.VideoBlock[i]) < 50 {
-			// 	continue
-			// }
+			if int(data.VideoBlock[i]) < 50 {
+				continue
+			}
 			currentRange := rangeCell * float64(i+data.VideoHeader.StartRange-1)
 			currentAzimuth := data.VideoHeader.StartAzimuth + azimuthIncrement * float64(i)
 			x, y := polarToCartesian(currentRange, currentAzimuth)
 			lat, longtitud := CartesianToGeo(51.754245,-1.356208, x, y)
-			coordinateHold = append(coordinateHold, BlockData{longtitud, lat, int(data.VideoBlock[i]), data.VideoHeader.StartAzimuth, data.VideoHeader.EndAzimuth, data.VideoHeader.StartRange})
+			coordinateHold = append(coordinateHold, BlockData{longtitud, lat, int(data.VideoBlock[i]), data.VideoHeader.StartAzimuth, data.VideoHeader.EndAzimuth, currentRange})
 		}
 		return &coordinateHold
 	}
 	
 	
 	func CartesianToGeo(originLat, originLon, x, y float64) (float64, float64) {
-		EarthRadius := 6378137.0 // Earth radius in nautical miles.
+		EarthRadius :=  6378100.0 // Earth radius in nautical miles.
 		// Convert the origin latitude to radians.
 		originLatRad := originLat * math.Pi / 180.0
 		// Calculate the angular offsets in radians.
@@ -100,7 +102,10 @@ func Decode (data *ValidData) map[string]interface{}{
 	
 	func toGeoJson(data *[]BlockData, start_azimuth,  end_azimuth float64, StartRange int)  (map[string]interface{}){
 		hold :=  []interface{}{}
-		for _, block := range *data {
+		for i , block := range *data {
+			if i == 0 {
+				continue
+			}
 			hold = append(hold, map[string]interface{}{
 				"type": "Feature",
 				"properties": map[string]interface{}{
@@ -118,7 +123,7 @@ func Decode (data *ValidData) map[string]interface{}{
 		return map[string]interface{}{
 			"start_azimuth": start_azimuth,
 			"end_azimuth": end_azimuth,
-			"start_range": StartRange,
+			"start_range": (*data)[0].StartRange,
 			"features": hold,
 		}
 	}
